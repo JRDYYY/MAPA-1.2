@@ -1,1 +1,372 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>BYDLENÍ — mapa ČR</title>
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin=""
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- MAPA -->
+    <div id="map"></div>
+
+    <!-- HORNÍ LIŠTA -->
+    <header class="topbar">
+
+        <div class="brand">
+            <span class="brand-dot"></span>
+            <span>BYDLENÍ</span>
+        </div>
+
+        <form id="searchForm" class="search">
+            <input
+                id="searchInput"
+                type="text"
+                placeholder="Hledat obec, ulici nebo adresu..."
+                autocomplete="off"
+            >
+
+            <button type="submit">
+                Hledat
+            </button>
+
+            <div id="searchResults" class="search-results"></div>
+        </form>
+
+        <select id="regionSelect" class="region-select">
+            <option value="all">Všechny kraje</option>
+            <option value="praha">Praha</option>
+            <option value="stredocesky">Středočeský kraj</option>
+            <option value="jihocesky">Jihočeský kraj</option>
+            <option value="plzensky">Plzeňský kraj</option>
+            <option value="karlovarsky">Karlovarský kraj</option>
+            <option value="ustecky">Ústecký kraj</option>
+            <option value="liberecky">Liberecký kraj</option>
+            <option value="kralovehradecky">Královéhradecký kraj</option>
+            <option value="pardubicky">Pardubický kraj</option>
+            <option value="vysocina">Kraj Vysočina</option>
+            <option value="jihomoravsky">Jihomoravský kraj</option>
+            <option value="olomoucky">Olomoucký kraj</option>
+            <option value="zlinsky">Zlínský kraj</option>
+            <option value="moravskoslezsky">Moravskoslezský kraj</option>
+        </select>
+
+        <div class="mode-switch">
+            <button class="active">Bydlení</button>
+            <button>Profi</button>
+        </div>
+
+    </header>
+
+
+    <!-- NAČÍTÁNÍ -->
+    <div id="loading" class="loading hidden">
+        Načítám mapová data...
+    </div>
+
+    <!-- CHYBA -->
+    <div id="errorBox" class="error hidden"></div>
+
+
+    <!-- MAPOVÉ VRSTVY -->
+    <aside class="layers-panel">
+
+        <div class="panel-header">
+
+            <div>
+                <div class="eyebrow">
+                    MAPOVÉ VRSTVY
+                </div>
+
+                <h3>
+                    Tematická mapa ČR
+                </h3>
+            </div>
+
+            <span class="source-badge">
+                RÚIAN
+            </span>
+
+        </div>
+
+
+        <div
+            class="layer-row active"
+            data-layer="price"
+        >
+
+            <input
+                type="radio"
+                name="mapLayer"
+                checked
+            >
+
+            <div class="layer-icon">
+                Kč
+            </div>
+
+            <div class="layer-info">
+                <strong>Ceny nemovitostí</strong>
+                <span>plošná zóna</span>
+            </div>
+
+            <span class="layer-badge real">
+                DATA
+            </span>
+
+        </div>
+
+
+        <div
+            class="layer-row"
+            data-layer="rent"
+        >
+
+            <input
+                type="radio"
+                name="mapLayer"
+            >
+
+            <div class="layer-icon">
+                ↗
+            </div>
+
+            <div class="layer-info">
+                <strong>Nájmy</strong>
+                <span>plošná zóna</span>
+            </div>
+
+            <span class="layer-badge real">
+                DATA
+            </span>
+
+        </div>
+
+
+        <div
+            class="layer-row"
+            data-layer="green"
+        >
+
+            <input
+                type="radio"
+                name="mapLayer"
+            >
+
+            <div class="layer-icon">
+                🌿
+            </div>
+
+            <div class="layer-info">
+                <strong>Zeleň</strong>
+                <span>plošná zóna</span>
+            </div>
+
+            <span class="layer-badge demo">
+                DEMO
+            </span>
+
+        </div>
+
+
+        <div
+            class="layer-row"
+            data-layer="noise"
+        >
+
+            <input
+                type="radio"
+                name="mapLayer"
+            >
+
+            <div class="layer-icon">
+                ◉
+            </div>
+
+            <div class="layer-info">
+                <strong>Hluk</strong>
+                <span>plošná zóna</span>
+            </div>
+
+            <span class="layer-badge demo">
+                DEMO
+            </span>
+
+        </div>
+
+
+        <div
+            class="layer-row"
+            data-layer="safety"
+        >
+
+            <input
+                type="radio"
+                name="mapLayer"
+            >
+
+            <div class="layer-icon">
+                ✓
+            </div>
+
+            <div class="layer-info">
+                <strong>Bezpečnost</strong>
+                <span>plošná zóna</span>
+            </div>
+
+            <span class="layer-badge demo">
+                DEMO
+            </span>
+
+        </div>
+
+
+        <div class="layer-divider"></div>
+
+
+        <div
+            class="layer-row schools-row"
+            data-layer="schools"
+        >
+
+            <input
+                id="schoolsToggle"
+                type="checkbox"
+            >
+
+            <div class="layer-icon">
+                🎓
+            </div>
+
+            <div class="layer-info">
+                <strong>Školy</strong>
+                <span>bodové POI</span>
+            </div>
+
+            <span class="layer-badge poi">
+                POI
+            </span>
+
+        </div>
+
+
+        <!-- LEGENDA -->
+
+        <div class="legend">
+
+            <div class="eyebrow">
+                <span id="legendTitle">
+                    Ceny nemovitostí
+                </span>
+            </div>
+
+            <div
+                id="legendBar"
+                class="legend-bar price-gradient"
+            ></div>
+
+            <div class="legend-labels">
+
+                <span id="legendLow">
+                    nižší
+                </span>
+
+                <span id="legendHigh">
+                    vyšší
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel-help">
+
+            Kliknutím na polygon otevřeš detail lokality.
+
+            <br><br>
+
+            Přibliž mapu a hranice se automaticky
+            přepnou:
+
+            <strong>
+                kraj → okres → obec → katastr
+            </strong>
+
+        </div>
+
+    </aside>
+
+
+    <!-- DETAIL -->
+    <aside
+        id="detailPanel"
+        class="detail-panel hidden"
+    >
+
+        <div class="detail-header">
+
+            <div>
+
+                <div
+                    id="detailLevel"
+                    class="eyebrow"
+                >
+                    LOKALITA
+                </div>
+
+                <h2 id="detailName">
+                    Lokalita
+                </h2>
+
+            </div>
+
+            <button
+                id="closeDetail"
+                class="close-button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            id="detailContent"
+            class="detail-content"
+        ></div>
+
+    </aside>
+
+
+    <!-- SPODNÍ TLAČÍTKO -->
+
+    <button
+        id="overviewButton"
+        class="overview-button"
+    >
+        Seznam zón ČR
+    </button>
+
+
+    <!-- LEAFLET -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin=""
+    ></script>
+
+    <!-- VLASTNÍ JS -->
+    <script src="script.js"></script>
+
+</body>
+</html>
